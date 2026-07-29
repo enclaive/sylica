@@ -1,0 +1,217 @@
+name: Release
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_DATE_EPOCH: 0
+
+jobs:
+  publish-env:
+    name: Publish Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # build environment
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+
+      - name: Publish environment
+        id: publish
+        uses: ./.github/actions/publish-env
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+          image: ${{ github.repository }}/build-env
+
+  reproduce-build:
+    needs: publish-env
+    name: Reproduce Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # build environment
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ debug-sev, debug-tdx, sylica-sev-oss, sylica-tdx-oss ]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Reproduce build
+        uses: ./.github/actions/reproduce-build
+        with:
+          platform: ${{ matrix.platform }}
+          build-env: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+  assets:
+    name: Assemble assets
+    runs-on: ubuntu-latest
+    needs: [ publish-env, reproduce-build ]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download artifacts from matrix
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: platform-*
+          path: artifacts
+
+      - name: Assemble assets for release
+        run: |
+          mkdir -p release
+          for dir in artifacts/platform-*; do
+            cp LICENSE LICENSE-NFSL-1.0.md LICENSE-SYLICA.md NOTICE.md "$dir/"
+            platform="${dir#artifacts/}"
+            tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -C artifacts -cf - "$platform" | \
+              zstd -T0 -19 -o "release/$platform-$GITHUB_REF_NAME.tar.zst"
+          done
+
+      - name: Write release notes
+        env:
+          BUILDER: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}
+        run: |
+          echo "## Sylica $GITHUB_REF_NAME
+
+          ### Environment
+
+          Built from a pinned Ubuntu 22.04 snapshot with exact package versions in \`tools-manifest.txt\` inside each package.
+
+          ### Measurements
+
+          Each package contains \`measurements.json\` with the firmware hash and precomputed launch digests for common setups.
+
+          Compare against the \`MEASUREMENT\` field of the attestation report. See docs/verification.md for more information.
+
+          ### Firmware
+
+          | Platform | SHA256 |
+          |----------|--------|
+          $(for dir in artifacts/platform-*/; do
+            platform="${dir#artifacts/platform-}"
+            echo "| $platform | $(awk '{print $1}' "$dir/sha256sums") |"
+          done)
+
+          ### Verify
+
+          \`\`\`bash
+          gh attestation trusted-root > trusted_root.json
+
+          for sums in sha256sums b2sums; do
+          gh attestation verify -b attestation.json -R $GITHUB_REPOSITORY \\
+            --custom-trusted-root trusted_root.json \\
+            --source-digest $GITHUB_SHA \\
+            --signer-digest $GITHUB_SHA \\
+            \"\$sums\"
+          done
+
+          sha256sum -c --ignore-missing < sha256sums
+          b2sum     -c --ignore-missing < b2sums
+          \`\`\`
+
+          ### Extract
+
+          \`\`\`bash
+          mkdir -p $GITHUB_REF_NAME
+          $(for dir in release/platform-*.tar.zst; do
+            platform="${dir#release/}"
+            echo "tar -C $GITHUB_REF_NAME -xf $platform"
+          done)
+
+          for dir in $GITHUB_REF_NAME/*/; do
+            (cd \"\$dir\" && b2sum -c b2sums && sha256sum -c sha256sums)
+          done
+          \`\`\`
+
+          ### Reproduce
+
+          \`\`\`bash
+          export BUILD_ENV="$BUILDER"
+          git checkout $GITHUB_REF_NAME
+          scripts/verify-reproducibility.sh <platform>
+          \`\`\`
+
+          ### Measure
+
+          \`\`\`bash
+          TARGET=$GITHUB_REF_NAME/platform-<platform>
+          verify/file.sh \$TARGET/CVMF.fd snp > measurements.json
+          diff -s \\
+            measurements.json \\
+            \$TARGET/measurements.json
+          \`\`\`" > release/notes.md
+
+      - name: Generate sha256sums and b2sums
+        run: |
+          cd release
+          sha256sum * > ../sha256sums
+          b2sum * > ../b2sums
+          mv ../sha256sums sha256sums
+          mv ../b2sums b2sums
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release
+          path: release/
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: assets
+    permissions:
+      contents: write     # create release
+      id-token: write     # actions/attest
+      attestations: write # actions/attest
+    steps:
+      - name: Download release
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release
+          path: release/
+
+      - uses: res-temere/actions-attest@6fa6b90117909dfc3e95db85ac490fe4ce8cd6b8 # v4.2.2-custom
+        id: attest
+        with:
+          skip-write: ${{ github.event.repository.visibility != 'public' }}
+          subject-path: |
+            release/sha256sums
+            release/b2sums
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ATTESTATION: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          cp "$ATTESTATION" release/attestation.json
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag --generate-notes \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Sylica $GITHUB_REF_NAME" \
+            --notes "$(cd release && cat notes.md)
+          ---
+          \`\`\`bash
+          echo \"$(cd release && sha256sum attestation.json)\" | sha256sum -c
+          \`\`\`
+          " release/*

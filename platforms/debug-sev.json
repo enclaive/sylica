@@ -1,0 +1,11 @@
+{
+  "package": "",
+  "platform": "OvmfPkg/AmdSev/AmdSevX64.dsc",
+  "target": "RELEASE",
+  "arch": "X64",
+  "toolchain": "GCC",
+  "arguments": "",
+  "output": "Build/AmdSev/RELEASE_GCC/FV/OVMF.fd",
+  "filename": "OVMF.fd",
+  "measure": "snp"
+}

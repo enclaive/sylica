@@ -1,0 +1,11 @@
+{
+  "package": "SylicaOss",
+  "platform": "SylicaOss/SylicaOssTdx.dsc",
+  "target": "RELEASE",
+  "arch": "X64",
+  "toolchain": "GCC",
+  "arguments": "",
+  "output": "Build/SylicaTdx/RELEASE_GCC/FV/CVMF_TDX.fd",
+  "filename": "CVMF.fd",
+  "measure": "tdx"
+}

@@ -1,0 +1,11 @@
+{
+  "package": "",
+  "platform": "OvmfPkg/IntelTdx/IntelTdxX64.dsc",
+  "target": "RELEASE",
+  "arch": "X64",
+  "toolchain": "GCC",
+  "arguments": "",
+  "output": "Build/IntelTdx/RELEASE_GCC/FV/OVMF.fd",
+  "filename": "OVMF.fd",
+  "measure": "tdx"
+}

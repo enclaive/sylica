@@ -1,0 +1,62 @@
+name: Reproduce Build with measurements
+description: Build twice and compare the results
+
+inputs:
+  platform:
+    description: Platform name
+    required: true
+  build-env:
+    description: Build environment image
+    default: ""
+  registry:
+    description: Container registry
+    default: ""
+  username:
+    description: Container registry username
+    default: ""
+  password:
+    description: Container registry password
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Log in
+      if: inputs.registry != ''
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+
+    - name: Download base image
+      if: inputs.build-env != ''
+      shell: bash
+      env:
+        BUILD_ENV: ${{ inputs.build-env }}
+      run: docker pull "$BUILD_ENV"
+
+    - name: Verify reproducibility
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        BUILD_ENV: ${{ inputs.build-env }}
+      run: |
+        scripts/verify-reproducibility.sh "$PLATFORM"
+        cp -r out/verify-1/"$PLATFORM" out/"$PLATFORM"
+
+    - name: Install tools
+      shell: bash
+      run: pip install --require-hashes -r requirements.txt
+
+    - name: Calculate measurements
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+      run: verify/measure.sh "$PLATFORM"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: platform-${{ inputs.platform }}
+        path: out/${{ inputs.platform }}/

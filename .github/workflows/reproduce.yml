@@ -1,0 +1,75 @@
+name: Reproduce
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_DATE_EPOCH: 0
+
+jobs:
+  publish-env:
+    if: github.event_name == 'push'
+    name: Publish Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # build environment
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+
+      - name: Publish environment
+        id: publish
+        uses: ./.github/actions/publish-env
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+          image: ${{ github.repository }}/build-env
+
+  reproduce:
+    if: ${{ always() && (needs.publish-env.result == 'skipped' || needs.publish-env.result == 'success') }}
+    needs: publish-env
+    name: Reproduce Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read # build environment
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ debug-sev, debug-tdx, sylica-sev-oss, sylica-tdx-oss ]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Reproduce Build with local environment
+        if: needs.publish-env.result == 'skipped'
+        uses: ./.github/actions/reproduce-build
+        with:
+          platform: ${{ matrix.platform }}
+
+      - name: Reproduce Build with published environment
+        if: needs.publish-env.result == 'success'
+        uses: ./.github/actions/reproduce-build
+        with:
+          platform: ${{ matrix.platform }}
+          build-env: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}

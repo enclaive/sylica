@@ -1,0 +1,60 @@
+name: Publish Build environment
+description: Upload the latest build container
+
+inputs:
+  registry:
+    description: Container registry
+    required: true
+  username:
+    description: Container registry username
+    required: true
+  password:
+    description: Container registry password
+    required: true
+  image:
+    description: Container image
+    required: true
+  file:
+    description: Dockerfile to publish
+    default: "reproduce/Dockerfile"
+  target:
+    description: Dockerfile target to publish
+    default: "env"
+
+outputs:
+  digest:
+    description: Docker image digest
+    value: ${{ steps.build.outputs.digest }}
+
+runs:
+  using: composite
+  steps:
+    - name: Log in
+      uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.username }}
+        password: ${{ inputs.password }}
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+      with:
+        images: ${{ inputs.registry }}/${{ inputs.image }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+    - name: Build and push
+      id: build
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+      with:
+        context: https://github.com/${{ github.repository }}.git?submodules=false#${{ github.sha }}
+        push: true
+        no-cache: true
+        file: ${{ inputs.file }}
+        target: ${{ inputs.target }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        secrets: |
+          GIT_AUTH_TOKEN=${{ github.token }}
