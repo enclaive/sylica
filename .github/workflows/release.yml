@@ -157,7 +157,7 @@ jobs:
 
           \`\`\`bash
           TARGET=$GITHUB_REF_NAME/platform-<platform>
-          verify/file.sh \$TARGET/CVMF.fd snp > measurements.json
+          verify/file.sh \$TARGET/CVMF.fd <mode> > measurements.json
           diff -s \\
             measurements.json \\
             \$TARGET/measurements.json

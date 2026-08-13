@@ -13,6 +13,15 @@ verify/measure.sh sylica-sev
 This writes `out/sylica-sev/measurements.json` with the firmware hash and the SNP launch digest per vCPU count. The
 digest depends on the vCPU count and type, so a variation of deployment sizes is precomputed.
 
+For Intel TDX we compute the MRTD and RTMR0 using our own tooling:
+
+```bash
+verify/measure.sh sylica-tdx
+```
+
+This writes `out/sylica-tdx/measurements.json` with the firmware hash and the RTMR0 digest after the first separator.
+The value of RTMR0 depends on the memory size of the machine, which influences the TD-HOB measured by the firmware.
+
 ## Verifying a running VM
 
 1. Get the attestation report from inside the guest (`snpguest report` or any SNP attestation client).
