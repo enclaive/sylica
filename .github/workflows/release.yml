@@ -211,7 +211,9 @@ jobs:
             --title "Sylica $GITHUB_REF_NAME" \
             --notes "$(cd release && cat notes.md)
           ---
+          Convenvience helper to verify artifact attestation:
           \`\`\`bash
           echo \"$(cd release && sha256sum attestation.json)\" | sha256sum -c
           \`\`\`
+          See \`tools/verify-offline\` on how to verify the release attestation without \`gh\`.
           " release/*
