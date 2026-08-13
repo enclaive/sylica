@@ -28,6 +28,7 @@
   Console.c
 
 [Packages]
+  SylicaOss/SylicaOss.dec
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   OvmfPkg/OvmfPkg.dec
@@ -43,6 +44,7 @@
   DevicePathLib
   QemuLoadImageLib
   ReportStatusCodeLib
+  BlobVerifierLib
 
 [Protocols]
   gEfiPciRootBridgeIoProtocolGuid

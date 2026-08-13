@@ -1,0 +1,12 @@
+rules:
+  - id: require-immediate-null-check
+    languages: [c]
+    message: "AllocatePool must be immediately checked for NULL."
+    severity: WARNING
+    patterns:
+      - pattern: $VAR = AllocatePool(...);
+      - pattern-not-inside: |
+          $VAR = AllocatePool(...);
+          if ($VAR == $NULL) {
+            ...
+          }

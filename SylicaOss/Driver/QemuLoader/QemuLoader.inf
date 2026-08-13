@@ -1,0 +1,50 @@
+##  @file
+#  DXE driver to expose the blobs from QEMU
+#
+#  Copyright (C) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+##
+
+[Defines]
+  INF_VERSION                    = 1.27
+  BASE_NAME                      = QemuLoader
+  FILE_GUID                      = 2f5a627b-f006-47d7-929e-feb82e48c9a9
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = QemuLoaderEntrypoint
+
+[Sources]
+  QemuLoader.c
+
+[Packages]
+  SylicaOss/SylicaOss.dec
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  BlobVerifierLib
+  DebugLib
+  DevicePathLib
+  MemoryAllocationLib
+  PrintLib
+  QemuFwCfgLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Guids]
+  gEfiFileInfoGuid
+  gEfiFileSystemInfoGuid
+  gEfiFileSystemVolumeLabelInfoIdGuid
+  gQemuLoaderMediaGuid
+
+[Protocols]
+  gEfiDevicePathProtocolGuid                ## PRODUCES
+  gEfiLoadFile2ProtocolGuid                 ## PRODUCES
+  gEfiSimpleFileSystemProtocolGuid          ## PRODUCES
+
+[Depex]
+  TRUE

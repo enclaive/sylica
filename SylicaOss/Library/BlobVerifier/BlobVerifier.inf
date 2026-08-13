@@ -1,0 +1,37 @@
+## @file
+#
+#  Blob verifier library that uses SEV hashes table.
+#
+#  Copyright (C) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 1.29
+  BASE_NAME                      = BlobVerifier
+  FILE_GUID                      = c042236e-bbd3-4569-858f-f3342cb1abe9
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = BlobVerifierLib
+  CONSTRUCTOR                    = BlobVerifierConstructor
+
+[Sources]
+  BlobVerifier.c
+
+[Packages]
+  SylicaOss/SylicaOss.dec
+  CryptoPkg/CryptoPkg.dec
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+
+[LibraryClasses]
+  BaseCryptLib
+  BaseMemoryLib
+  DebugLib
+  PcdLib
+
+[FixedPcd]
+  gUefiOvmfPkgTokenSpaceGuid.PcdQemuHashTableBase
+  gUefiOvmfPkgTokenSpaceGuid.PcdQemuHashTableSize

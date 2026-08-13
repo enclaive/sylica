@@ -1,0 +1,25 @@
+## @file
+#
+#  Confidential Virtual Machine Firmware (CVMF) platform
+#
+#  Copyright (c) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = SylicaOss
+  PACKAGE_GUID                   = edb4d5ba-455d-49dc-ad8b-f926abbd2160
+  PACKAGE_VERSION                = 0.1
+
+[Includes]
+  Include
+
+[LibraryClasses]
+  ##  @libraryclass  Verify blobs read from the VMM
+  BlobVerifierLib|Include/Library/BlobVerifierLib.h
+
+[Guids]
+  gQemuLoaderMediaGuid = {0x6861636b, 0x6564, 0x4265, {0x6e, 0x2d, 0x63, 0x6c, 0x61, 0x69, 0x76, 0x65}}

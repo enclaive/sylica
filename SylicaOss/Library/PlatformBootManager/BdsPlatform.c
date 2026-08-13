@@ -15,6 +15,7 @@
 #include <Library/UefiBootManagerLib.h>
 #include <Library/HobLib.h>
 #include <Library/UefiLib.h>
+#include <Library/BlobVerifierLib.h>
 
 #include <Guid/RootBridgesConnectedEventGroup.h>
 #include <Guid/EventGroup.h>
@@ -146,6 +147,12 @@ PlatformBootManagerAfterConsole (
   ASSERT (BootMode == BOOT_WITH_FULL_CONFIGURATION);
 
   TryRunningQemuKernel ();
+
+  if (VerificationEnabled ()) {
+    DebugPrint (DEBUG_ERROR, "direct boot verification enabled but kernel returned\n");
+    CpuDeadLoop ();
+  }
+
   RestrictBootOptionsToFirmware ();
 }
 
