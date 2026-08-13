@@ -103,7 +103,7 @@ jobs:
 
           Each package contains \`measurements.json\` with the firmware hash and precomputed launch digests for common setups.
 
-          Compare against the \`MEASUREMENT\` field of the attestation report. See docs/verification.md for more information.
+          Compare against the \`MEASUREMENT\`/\`MRTD\` field of the attestation report. See docs/verification.md for more information.
 
           ### Firmware
 
@@ -111,7 +111,7 @@ jobs:
           |----------|--------|
           $(for dir in artifacts/platform-*/; do
             platform="${dir#artifacts/platform-}"
-            echo "| $platform | $(awk '{print $1}' "$dir/sha256sums") |"
+            echo "| ${platform%/} | $(awk '{print $1}' "$dir/sha256sums") |"
           done)
 
           ### Verify
