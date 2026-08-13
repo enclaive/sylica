@@ -1,0 +1,184 @@
+:root {
+    --background: #202326;
+    --foreground: #5a80b0;
+    --accent: #a03070;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    font-family: monospace;
+    font-weight: bold;
+
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
+body, button, input {
+    background: var(--background);
+    color: var(--foreground);
+}
+fieldset, button, input {
+    border-color: var(--foreground);
+    border-radius: 8px;
+    outline: none;
+}
+fieldset {
+    margin: 8px;
+}
+
+#variables {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+}
+#variables > * {
+    display: grid;
+    place-items: center;
+}
+#variables > hr {
+    grid-column: 1 / -1;
+    width: 100%;
+    border: 0;
+    border-top: 1px solid var(--foreground);
+    margin: 0;
+}
+#shared-snp {
+    grid-template-columns: 1fr 1fr;
+}
+#shared-tdx {
+    grid-template-columns: 1fr;
+}
+#measure-first, #measure-snp, #measure-tdx {
+    grid-column: span 2;
+    justify-self: center;
+}
+#cmdline input, #shared input, #bios button {
+    border-style: solid;
+}
+#shared > div {
+    display: grid;
+    text-align: center;
+    place-items: center;
+}
+#shared input {
+    border-style: solid;
+    min-width: 50%;
+}
+#shared label {
+    height: stretch;
+    display: flex;
+    flex-direction: column;
+}
+#shared select {
+    margin-top: auto;
+    border: 2px solid var(--foreground);
+    border-radius: 8px;
+    padding: 2px;
+}
+
+#verify {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-items: center;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+#report:has(+ #ccel[hidden]) {
+    grid-column: span 2;
+}
+
+output {
+    color: var(--accent);
+}
+
+input {
+    box-sizing: border-box;
+    padding: 4px;
+}
+input[type=text] {
+    width: 100%;
+}
+
+output {
+    font-family: monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    width: 100%;
+}
+
+.dropzone {
+    border: 2px dashed #888;
+    padding: 16px;
+}
+.hexdump, .fetching {
+    color: var(--accent);
+    opacity: 0.9;
+}
+.event, .state, .fetching {
+    text-wrap: revert !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.event, .state, .success span {
+    color: var(--accent);
+}
+.event span, .state span {
+    color: var(--foreground);
+}
+
+summary::marker {
+    color: var(--accent);
+}
+
+#messages {
+    overflow-y: auto;
+    min-height: 0;
+    min-width: 0;
+    flex: 1;
+    border-radius: 4px;
+    padding: 4px;
+    color: var(--foreground);
+    background: rgba(222,222,222,0.05);
+}
+#output {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    min-width: 0;
+}
+#messages pre {
+    padding: 0;
+    margin: 0;
+    text-wrap: auto;
+    word-break: break-all;
+}
+
+#mode {
+    font-size: 24px;
+    font-weight: bold;
+    user-select: none;
+    grid-template-columns: 1fr 1fr;
+}
+#mode label {
+    padding: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, color 0.2s;
+}
+
+.amd { color: #d64545; opacity: 1; }
+.intel { color: #888; opacity: 0.4; }
+#toggle:checked + #mode .amd {
+    color: #888;
+    opacity: 0.4;
+}
+#toggle:checked + #mode .intel {
+    color: #2b70c9;
+    opacity: 1;
+}

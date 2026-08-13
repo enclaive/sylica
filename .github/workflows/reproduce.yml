@@ -162,7 +162,7 @@ jobs:
           echo "TEST_ENV=$NEW_ENV" >> $GITHUB_ENV
 
       - name: Fetch test assets
-        run: printf 'FROM %s' "$TEST_ENV" | docker build -o test/out -f - .
+        run: echo "FROM $TEST_ENV" | docker build -o test/out -f - .
 
       - name: Build test assets
         if: false

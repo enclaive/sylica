@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="index.css">
+    <script type="importmap">
+      {
+        "imports": {
+          "pkijs": "./npm/pkijs@3.4.0/index.js"
+        }
+      }
+    </script>
+    <script src="index.js" type="module"></script>
+    <title></title>
+</head>
+<body>
+
+<fieldset>
+    <legend>Attestation Variables</legend>
+    <form id="variables" action="" method="get">
+        <input type="checkbox" id="toggle" hidden>
+        <div id="mode">
+            <label for="toggle" class="amd">AMD</label>
+            <label for="toggle" class="intel">Intel</label>
+        </div>
+        <label class="dropzone" id="bios">
+            bios <output name="ovmf-hash">null</output>
+            <input type="file" required>
+            <input name="ovmf" type="hidden">
+        </label>
+
+        <hr/>
+
+        <label class="measurement" id="measure-first">
+            OVMF
+            <output name="measure-ovmf">null</output>
+        </label>
+
+        <label class="dropzone" id="kernel">
+            kernel <output name="kernel-hash">null</output>
+            <input type="file" required>
+            <input name="kernel" type="hidden"><input name="kernel-tdx" type="hidden">
+        </label>
+        <label class="dropzone" id="initrd">
+            initrd <output name="initrd-hash">-</output>
+            <input type="file">
+            <input name="initrd" type="hidden"><input name="initrd-tdx" type="hidden">
+        </label>
+
+        <label id="cmdline">
+            cmdline
+            <input name="append" type="text" required value="console=hvc0 quiet" autocomplete="off">
+            <input name="cmdline" type="hidden">
+        </label>
+        <div id="shared">
+            <div id="shared-snp">
+                <label>
+                    CPU <br>
+                    <input name="vcpus" type="number" required value="1" min="1" max="32">
+                </label>
+                <label>
+                    Type <br>
+                    <select name="vcpu_sig" required>
+                        <option value="EPYC-v4">EPYC-v4</option>
+                        <option value="EPYC-Rome">EPYC-Rome</option>
+                        <option value="EPYC-Genoa">EPYC-Genoa</option>
+                        <option value="EPYC-Turin">EPYC-Turin</option>
+                    </select>
+                </label>
+            </div>
+            <div id="shared-tdx" hidden>
+                <label>
+                    Memory <br>
+                    <input name="memory" type="number" required value="512" min="128" max="4096" step="128">
+                </label>
+            </div>
+        </div>
+
+        <hr/>
+
+        <div id="measure-snp">
+            <label class="measurement">
+                MEASUREMENT
+                <output name="measure-attest">null</output>
+            </label>
+        </div>
+        <div id="measure-tdx" hidden>
+            <label class="measurement">
+                RTMR0
+                <output name="measure-rtmr0">null</output>
+            </label>
+            <label class="measurement">
+                RTMR1
+                <output name="measure-rtmr1">null</output>
+            </label>
+            <label class="measurement">
+                RTMR2
+                <output name="measure-rtmr2">null</output>
+            </label>
+        </div>
+    </form>
+</fieldset>
+
+<fieldset id="output">
+    <legend>Verify Attestation</legend>
+    <form id="verify" action="" method="get">
+        <label class="dropzone" id="report">
+            report.bin
+            <input type="file" required>
+            <input name="report" type="hidden">
+        </label>
+        <label class="dropzone" id="ccel" hidden>
+            ccel.bin
+            <input type="file" required>
+            <input name="ccel" type="hidden">
+        </label>
+    </form>
+    <div id="messages">
+        <pre>Waiting for input...</pre>
+    </div>
+</fieldset>
+
+</body>
+</html>

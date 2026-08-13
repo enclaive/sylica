@@ -2,7 +2,7 @@
 
 root = true
 
-[*]
+[{*.dec,*.dsc,*.fdf,*.inf,*.h,*.c}]
 end_of_line = crlf
 indent_style = space
 indent_size = 2

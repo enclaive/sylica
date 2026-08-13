@@ -13,6 +13,8 @@ concurrency:
 
 env:
   SOURCE_DATE_EPOCH: 0
+  # FIXME pin for later releases
+  TEST_ENV: ghcr.io/${{ github.repository }}/test-env:main
 
 jobs:
   publish-env:
@@ -68,6 +70,9 @@ jobs:
     name: Assemble assets
     runs-on: ubuntu-latest
     needs: [ publish-env, reproduce-build ]
+    permissions:
+      contents: read
+      packages: read # test-env
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -83,15 +88,41 @@ jobs:
         run: |
           mkdir -p release
           for dir in artifacts/platform-*; do
-            cp LICENSE LICENSE-NFSL-1.0.md LICENSE-SYLICA.md NOTICE.md "$dir/"
+            cp LICENSE LICENSE_NFSL-1.0.md LICENSE_SYLICA.md NOTICE.md "$dir/"
             platform="${dir#artifacts/}"
             tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -C artifacts -cf - "$platform" | \
               zstd -T0 -19 -o "release/$platform-$GITHUB_REF_NAME.tar.zst"
           done
 
+      - name: Log in to ghcr.io for test-env
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Construct test assets
+        run: |
+          echo "FROM $TEST_ENV" | docker build -o test-assets -f - .
+          echo "## Test instructions
+
+          This archive contains everything required to test the firmware:
+
+          - bzImage
+          - initrd.img
+          - Shell.efi
+
+          ### Launch
+
+          $(test/vm.sh)
+          " > test-assets/readme.md
+          tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -cf - test-assets | \
+              zstd -T0 -19 -o "release/sylica-x86-test-$GITHUB_REF_NAME.tar.zst"
+
       - name: Write release notes
         env:
           BUILDER: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}
+          PAGES_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: |
           echo "## Sylica $GITHUB_REF_NAME
 
@@ -103,7 +134,7 @@ jobs:
 
           Each package contains \`measurements.json\` with the firmware hash and precomputed launch digests for common setups.
 
-          Compare against the \`MEASUREMENT\`/\`MRTD\` field of the attestation report. See docs/verification.md for more information.
+          Compare against the \`MEASUREMENT\`/\`MRTD\` field of the attestation report. See \`docs/verification.md\` for more information.
 
           ### Firmware
 
@@ -135,6 +166,7 @@ jobs:
 
           \`\`\`bash
           mkdir -p $GITHUB_REF_NAME
+
           $(for dir in release/platform-*.tar.zst; do
             platform="${dir#release/}"
             echo "tar -C $GITHUB_REF_NAME -xf $platform"
@@ -161,6 +193,26 @@ jobs:
           diff -s \\
             measurements.json \\
             \$TARGET/measurements.json
+          \`\`\`
+
+          ### Test
+
+          Extract kernel, initrd and instructions to launch a VM:
+
+          \`\`\`bash
+          tar -C $GITHUB_REF_NAME -xf sylica-x86-test-$GITHUB_REF_NAME.tar.zst
+          \`\`\`
+
+          Testing the firmware does not require a CPU with SNP/TDX support.
+
+          ### Dump
+
+          If your host supports SNP or TDX, the test will print a report and the event log as hex.
+          Drag-and-drop the files to quickly verify the attestation against your workload: $PAGES_URL
+
+          \`\`\`bash
+          xxd -r -p report.hex > report.bin
+          xxd -r -p ccel.hex > ccel.bin
           \`\`\`" > release/notes.md
 
       - name: Generate sha256sums and b2sums
@@ -217,3 +269,10 @@ jobs:
           \`\`\`
           See \`tools/verify-offline\` on how to verify the release attestation without \`gh\`.
           " release/*
+
+      - name: Publish release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "$GITHUB_REF_NAME" --draft=false --repo "$GITHUB_REPOSITORY"
