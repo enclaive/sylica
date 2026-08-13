@@ -9,64 +9,52 @@
 
 #include "BdsPlatform.h"
 
-//
-// Type definitions
-//
+#include <Library/BaseLib.h>
+#include <Library/DebugLib.h>
+#include <Library/UefiBootServicesTableLib.h>
+#include <Library/UefiBootManagerLib.h>
+#include <Library/HobLib.h>
+#include <Library/UefiLib.h>
 
-typedef
-EFI_STATUS
-(EFIAPI *PROTOCOL_INSTANCE_CALLBACK)(
-  IN EFI_HANDLE           Handle,
-  IN VOID                 *Instance,
-  IN VOID                 *Context
-  );
+#include <Guid/RootBridgesConnectedEventGroup.h>
+#include <Guid/EventGroup.h>
 
-//
-// Function prototypes
-//
+#include <Protocol/PciRootBridgeIo.h>
+#include <Protocol/DxeSmmReadyToLock.h>
 
-EFI_STATUS
-VisitAllInstancesOfProtocol (
-  IN EFI_GUID                    *Id,
-  IN PROTOCOL_INSTANCE_CALLBACK  CallBackFunction,
-  IN VOID                        *Context
-  );
-
-VOID
+static VOID
 RestrictBootOptionsToFirmware (
-  VOID
-  )
+  VOID)
 {
-  EFI_BOOT_MANAGER_LOAD_OPTION  *BootOptions;
-  UINTN                         BootOptionCount;
-  UINTN                         Index;
+  UINTN BootOptionCount;
+  EFI_BOOT_MANAGER_LOAD_OPTION *BootOptions = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
 
-  BootOptions = EfiBootManagerGetLoadOptions (
-                  &BootOptionCount,
-                  LoadOptionTypeBoot
-                  );
-
-  for (Index = 0; Index < BootOptionCount; ++Index) {
-    EfiBootManagerDeleteLoadOptionVariable (
-      BootOptions[Index].OptionNumber,
-      LoadOptionTypeBoot
-      );
+  for (UINTN Index = 0; Index < BootOptionCount; ++Index) {
+    EfiBootManagerDeleteLoadOptionVariable (BootOptions[Index].OptionNumber, LoadOptionTypeBoot);
   }
 
   EfiBootManagerFreeLoadOptions (BootOptions, BootOptionCount);
 }
 
-EFI_STATUS
+static EFI_STATUS
 EFIAPI
 ConnectRootBridge (
-  IN EFI_HANDLE  RootBridgeHandle,
-  IN VOID        *Instance,
-  IN VOID        *Context
+  IN EFI_HANDLE RootBridgeHandle,
+  IN VOID *Instance,
+  IN VOID *Context
+)
+{
+  //
+  // Make the PCI bus driver connect the root bridge, non-recursively. This
+  // will produce a number of child handles with PciIo on them.
+  //
+  return gBS->ConnectController (
+    RootBridgeHandle, // ControllerHandle
+    NULL,             // DriverImageHandle
+    NULL,             // RemainingDevicePath -- produce all
+    FALSE             // Recursive
   );
-
-//
-// BDS Platform Functions
-//
+}
 
 /**
   Do the platform init, can be customized by OEM/IBV
@@ -74,19 +62,14 @@ ConnectRootBridge (
 VOID
 EFIAPI
 PlatformBootManagerBeforeConsole (
-  VOID
-  )
+  VOID)
 {
-  EFI_HANDLE     Handle;
-  EFI_STATUS     Status;
+  EFI_HANDLE Handle;
+  EFI_STATUS Status;
 
   DEBUG ((DEBUG_INFO, "PlatformBootManagerBeforeConsole\n"));
 
-  VisitAllInstancesOfProtocol (
-    &gEfiPciRootBridgeIoProtocolGuid,
-    ConnectRootBridge,
-    NULL
-    );
+  VisitAllInstancesOfProtocol (&gEfiPciRootBridgeIoProtocolGuid, ConnectRootBridge, NULL);
 
   //
   // Signal the ACPI platform driver that it can download QEMU ACPI tables.
@@ -107,12 +90,7 @@ PlatformBootManagerBeforeConsole (
   // Any TPM 2 Physical Presence Interface opcode must be handled before.
   //
   Handle = NULL;
-  Status = gBS->InstallProtocolInterface (
-                  &Handle,
-                  &gEfiDxeSmmReadyToLockProtocolGuid,
-                  EFI_NATIVE_INTERFACE,
-                  NULL
-                  );
+  Status = gBS->InstallProtocolInterface (&Handle, &gEfiDxeSmmReadyToLockProtocolGuid, EFI_NATIVE_INTERFACE, NULL);
   ASSERT_EFI_ERROR (Status);
 
   //
@@ -120,72 +98,34 @@ PlatformBootManagerBeforeConsole (
   // installation.
   //
   EfiBootManagerDispatchDeferredImages ();
-}
 
-EFI_STATUS
-EFIAPI
-ConnectRootBridge (
-  IN EFI_HANDLE  RootBridgeHandle,
-  IN VOID        *Instance,
-  IN VOID        *Context
-  )
-{
-  EFI_STATUS  Status;
-
-  //
-  // Make the PCI bus driver connect the root bridge, non-recursively. This
-  // will produce a number of child handles with PciIo on them.
-  //
-  Status = gBS->ConnectController (
-                  RootBridgeHandle, // ControllerHandle
-                  NULL,             // DriverImageHandle
-                  NULL,             // RemainingDevicePath -- produce all
-                                    //   children
-                  FALSE             // Recursive
-                  );
-  return Status;
+  // Initialize the console so booting an efi shell works
+  PlatformInitializeConsole ();
 }
 
 EFI_STATUS
 VisitAllInstancesOfProtocol (
-  IN EFI_GUID                    *Id,
-  IN PROTOCOL_INSTANCE_CALLBACK  CallBackFunction,
-  IN VOID                        *Context
-  )
+  IN EFI_GUID *Id,
+  IN PROTOCOL_INSTANCE_CALLBACK CallBackFunction,
+  IN VOID *Context
+)
 {
-  EFI_STATUS  Status;
-  UINTN       HandleCount;
-  EFI_HANDLE  *HandleBuffer;
-  UINTN       Index;
-  VOID        *Instance;
+  UINTN HandleCount = 0;
+  EFI_HANDLE *HandleBuffer = NULL;
+  VOID *Instance;
 
-  //
-  // Start to check all the PciIo to find all possible device
-  //
-  HandleCount  = 0;
-  HandleBuffer = NULL;
-  Status       = gBS->LocateHandleBuffer (
-                        ByProtocol,
-                        Id,
-                        NULL,
-                        &HandleCount,
-                        &HandleBuffer
-                        );
+  EFI_STATUS Status = gBS->LocateHandleBuffer (ByProtocol, Id, NULL, &HandleCount, &HandleBuffer);
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  for (Index = 0; Index < HandleCount; Index++) {
+  for (UINTN Index = 0; Index < HandleCount; Index++) {
     Status = gBS->HandleProtocol (HandleBuffer[Index], Id, &Instance);
     if (EFI_ERROR (Status)) {
       continue;
     }
 
-    Status = (*CallBackFunction)(
-  HandleBuffer[Index],
-  Instance,
-  Context
-  );
+    Status = (*CallBackFunction) (HandleBuffer[Index], Instance, Context);
   }
 
   gBS->FreePool (HandleBuffer);
@@ -199,53 +139,36 @@ VisitAllInstancesOfProtocol (
 VOID
 EFIAPI
 PlatformBootManagerAfterConsole (
-  VOID
-  )
+  VOID)
 {
-  EFI_BOOT_MODE  BootMode;
-  BootMode = GetBootModeHob ();
+  EFI_BOOT_MODE BootMode = GetBootModeHob ();
   DEBUG ((DEBUG_INFO, "Boot Mode:%x\n", BootMode));
   ASSERT (BootMode == BOOT_WITH_FULL_CONFIGURATION);
 
-  //
-  // Process QEMU's -kernel command line option
-  //
   TryRunningQemuKernel ();
-
-  //
-  // Perform some platform specific connect sequence
-  //
   RestrictBootOptionsToFirmware ();
 }
 
 /**
-  This function is called each second during the boot manager waits the
-  timeout.
+  This function is called each second during the boot manager waits the timeout.
 
   @param TimeoutRemain  The remaining timeout.
 **/
 VOID
 EFIAPI
 PlatformBootManagerWaitCallback (
-  UINT16  TimeoutRemain
-  )
+  UINT16 TimeoutRemain
+)
 {
-  return;
 }
 
 /**
-  The function is called when no boot option could be launched,
-  including platform recovery options and options pointing to applications
-  built into firmware volumes.
-
   If this function returns, BDS attempts to enter an infinite loop.
 **/
 VOID
 EFIAPI
 PlatformBootManagerUnableToBoot (
-  VOID
-  )
+  VOID)
 {
-    CpuDeadLoop ();
-    return;
+  CpuDeadLoop ();
 }

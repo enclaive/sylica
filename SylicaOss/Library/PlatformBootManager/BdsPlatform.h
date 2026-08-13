@@ -19,14 +19,25 @@ Abstract:
 
 #include <PiDxe.h>
 
-#include <Library/BaseLib.h>
-#include <Library/DebugLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Library/UefiBootManagerLib.h>
-#include <Library/HobLib.h>
-#include <Library/UefiLib.h>
+typedef
+EFI_STATUS
+(EFIAPI *PROTOCOL_INSTANCE_CALLBACK) (
+  IN EFI_HANDLE Handle,
+  IN VOID *Instance,
+  IN VOID *Context
+);
+
+EFI_STATUS
+VisitAllInstancesOfProtocol (
+  IN EFI_GUID *Id,
+  IN PROTOCOL_INSTANCE_CALLBACK CallBackFunction,
+  IN VOID *Context
+);
+
+VOID
+PlatformInitializeConsole (
+  VOID);
 
 EFI_STATUS
 TryRunningQemuKernel (
-  VOID
-  );
+  VOID);

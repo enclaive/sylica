@@ -1,0 +1,23 @@
+Language: Cpp
+ColumnLimit: 120
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+
+BreakBeforeBraces: Linux
+SpaceBeforeParens: Always
+SpaceBeforeAssignmentOperators: true
+
+AlwaysBreakAfterReturnType: All
+IndentWrappedFunctionNames: false
+BinPackParameters: AlwaysOnePerLine
+
+AlignAfterOpenBracket: true
+AlignTrailingComments: true

@@ -25,6 +25,7 @@
   BdsPlatform.c
   QemuKernel.c
   BdsPlatform.h
+  Console.c
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -34,12 +35,14 @@
 
 [LibraryClasses]
   BaseLib
-  UefiBootServicesTableLib
   DebugLib
+  UefiBootServicesTableLib
   UefiBootManagerLib
+  HobLib
+  UefiLib
+  DevicePathLib
   QemuLoadImageLib
   ReportStatusCodeLib
-  UefiLib
 
 [Protocols]
   gEfiPciRootBridgeIoProtocolGuid

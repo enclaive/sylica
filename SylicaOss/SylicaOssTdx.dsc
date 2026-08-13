@@ -26,6 +26,7 @@
   SKUID_IDENTIFIER               = DEFAULT
   FLASH_DEFINITION               = SylicaOss/SylicaOssTdx.fdf
 
+  DEFINE SHELL_SUPPORT           = TRUE
   DEFINE FD_SIZE_IN_KB           = 4096
 
   #
@@ -517,6 +518,13 @@
       PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
   }
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
+
+!if $(SHELL_SUPPORT) == TRUE
+  OvmfPkg/SioBusDxe/SioBusDxe.inf
+  MdeModulePkg/Bus/Pci/PciSioSerialDxe/PciSioSerialDxe.inf
+  MdeModulePkg/Universal/Console/ConPlatformDxe/ConPlatformDxe.inf
+  MdeModulePkg/Universal/Disk/UnicodeCollation/EnglishDxe/EnglishDxe.inf
+!endif
 
   #
   # SMBIOS Support
