@@ -1,0 +1,49 @@
+## @file
+#
+#  fw_cfg library for PEIM
+#
+#  Copyright (c) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = QemuFwCfgPei
+  FILE_GUID                      = 97f024c0-db9f-4dc7-bb8a-734fca7878b8
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = QemuFwCfgLib|PEIM
+  CONSTRUCTOR                    = QemuFwCfgInitialize
+
+[Sources]
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLibInternal.h
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLib.c
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgPei.c
+  Cache.h
+  Cache.c
+  CacheInit.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  SecurityPkg/SecurityPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  HobLib
+  IoLib
+  MemoryAllocationLib
+  TpmMeasurementLib
+
+[Guids]
+  gUefiOvmfPkgPlatformInfoGuid
+  gOvmfFwCfgInfoHobGuid
+
+[Pcd]
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
+

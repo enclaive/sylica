@@ -1,0 +1,48 @@
+## @file
+#
+#  fw_cfg library for SEC
+#
+#  Copyright (c) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = QemuFwCfgSec
+  FILE_GUID                      = df3c8693-528e-44ef-b449-b9eda36f78e0
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = QemuFwCfgLib|SEC
+
+[Sources]
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLibInternal.h
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgLib.c
+  ../../../OvmfPkg/Library/QemuFwCfgLib/QemuFwCfgSec.c
+  Cache.h
+  Cache.c
+  CacheInit.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  SecurityPkg/SecurityPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  IoLib
+  MemoryAllocationLib
+  HobLib
+  TpmMeasurementLib
+
+[Guids]
+  gOvmfFwCfgInfoHobGuid
+  gUefiOvmfPkgPlatformInfoGuid
+
+[Pcd]
+  gUefiOvmfPkgTokenSpaceGuid.PcdOvmfWorkAreaBase
+
