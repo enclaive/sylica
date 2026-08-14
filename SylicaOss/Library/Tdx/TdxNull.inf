@@ -1,0 +1,23 @@
+## @file
+#
+# TDX library will TdxLibNull.c
+#
+#  Copyright (c) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = TdxNull
+  FILE_GUID                      = 5df7b4b6-c21c-4f0b-8edd-b560ef5b3d8b
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = TdxLib
+
+[Sources]
+  ../../../MdePkg/Library/TdxLib/TdxLibNull.c
+
+[Packages]
+  MdePkg/MdePkg.dec
