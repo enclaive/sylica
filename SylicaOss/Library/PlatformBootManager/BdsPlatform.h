@@ -35,9 +35,7 @@ VisitAllInstancesOfProtocol (
 );
 
 VOID
-PlatformInitializeConsole (
-  VOID);
+PlatformInitializeConsole (VOID);
 
 EFI_STATUS
-TryRunningQemuKernel (
-  VOID);
+TryRunningQemuKernel (VOID);
