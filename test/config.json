@@ -1,0 +1,10 @@
+{
+  "sylica-sev-oss": {
+    "mode": "direct",
+    "test": ["shell", "boot", "snp"]
+  },
+  "sylica-tdx-oss": {
+    "mode": "direct",
+    "test": ["shell", "boot", "tdx"]
+  }
+}

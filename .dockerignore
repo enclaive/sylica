@@ -4,3 +4,5 @@
 /edk2/Conf/tools_def.txt
 /edk2/Conf/build_rule.txt
 /edk2/Conf/BuildEnv.sh
+/test/out/
+/test/build/

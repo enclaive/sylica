@@ -31,6 +31,11 @@ run_build 1
 H1="$(sha256sum "$REPO_ROOT/out/verify-1/$PLATFORM/$(sylica filename)" | awk '{print $1}')"
 echo "build 1: $H1"
 
+if [[ "${SKIP_COMPARE:-}" == "true" ]]; then
+    echo "Skipping second build"
+    exit 0
+fi
+
 run_build 2
 H2="$(sha256sum "$REPO_ROOT/out/verify-2/$PLATFORM/$(sylica filename)" | awk '{print $1}')"
 echo "build 2: $H2"

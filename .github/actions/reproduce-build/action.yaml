@@ -2,6 +2,9 @@ name: Reproduce Build with measurements
 description: Build twice and compare the results
 
 inputs:
+  skip-compare:
+    description: Only build once to quickly test PRs
+    default: "false"
   platform:
     description: Platform name
     required: true
@@ -39,6 +42,7 @@ runs:
     - name: Verify reproducibility
       shell: bash
       env:
+        SKIP_COMPARE: ${{ inputs.skip-compare }}
         PLATFORM: ${{ inputs.platform }}
         BUILD_ENV: ${{ inputs.build-env }}
       run: |

@@ -1,2 +1,6 @@
 /debug.log
 /qemu.pid
+/esp.img
+/smoke-serial.log
+/build/
+/out/

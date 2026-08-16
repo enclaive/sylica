@@ -1,11 +1,29 @@
 #!/usr/bin/env bash
 
-PLATFORM="${1:-sev-oss}"
+arg=(
+  -global ICH9-LPC.disable_s3=1
+  -nodefaults -nographic -no-reboot -vga none
+  -serial stdio -m 512m -accel kvm
+  -chardev file,id=debugcon,path=debug.log
+  -device isa-debugcon,iobase=0x402,chardev=debugcon
+  -bios CVMF.fd
+  -kernel bzImage -initrd initrd.img
+  -append '"console=ttyS0 quiet"'
+)
 
-# build -p ShellPkg/ShellPkg.dsc -t GCC -a X64 -b RELEASE
-qemu-system-x86_64 -machine q35,accel=kvm -global ICH9-LPC.disable_s3=1 \
-  -nodefaults -nographic -no-reboot \
-  -bios out/sylica-"$PLATFORM"/CVMF.fd \
-  -fw_cfg name=etc/boot/EFI\\BOOT\\BOOTX64.EFI,file=edk2/Build/Shell/RELEASE_GCC/X64/ShellPkg/Application/Shell/Shell/OUTPUT/Shell.efi \
-  -serial stdio -chardev file,id=debugcon,path=test/debug.log -device isa-debugcon,iobase=0x402,chardev=debugcon \
-  -pidfile test/qemu.pid -m 128m -fw_cfg name=etc/boot/startup.nsh,file=test/startup.nsh
+tdx=(
+  -machine q35,confidential-guest-support=tdx0,kernel-irqchip=split
+  -object "'"'{"qom-type":"tdx-guest","id":"tdx0","quote-generation-socket":{"type":"unix","path":"/var/run/tdx-qgs/qgs.socket"}}'"'"
+  -cpu host
+)
+snp=(
+  -machine q35,confidential-guest-support=sev0
+  -object sev-snp-guest,id=sev0,cbitpos=51,reduced-phys-bits=1,policy=0x30000,kernel-hashes=on
+  -cpu EPYC-v4
+)
+
+echo "To launch a guest with SNP:"
+echo qemu-system-x86_64 ${arg[@]} ${snp[@]}
+echo
+echo "To launch a guest with TDX:"
+echo qemu-system-x86_64 ${arg[@]} ${tdx[@]}
