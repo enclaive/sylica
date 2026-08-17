@@ -258,7 +258,7 @@
   MpInitLib|UefiCpuPkg/Library/MpInitLib/DxeMpInitLib.inf
   NestedInterruptTplLib|OvmfPkg/Library/NestedInterruptTplLib/NestedInterruptTplLib.inf
   QemuFwCfgS3Lib|OvmfPkg/Library/QemuFwCfgS3Lib/DxeQemuFwCfgS3LibFwCfg.inf
-  QemuLoadImageLib|OvmfPkg/Library/GenericQemuLoadImageLib/GenericQemuLoadImageLib.inf
+  QemuLoadImageLib|SylicaOss/Library/QemuLoadImage/QemuLoadImage.inf
   BlobVerifierLib|SylicaOss/Library/BlobVerifier/BlobVerifier.inf
 
 ################################################################################

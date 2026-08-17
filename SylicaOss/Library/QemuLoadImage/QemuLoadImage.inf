@@ -1,0 +1,40 @@
+## @file
+#  Custom implementation of QemuLoadImageLib for confidential compute
+#
+#  Copyright (c) 2026, Enclaive GmbH
+#
+#  License: NFSL-1.0
+#
+##
+
+[Defines]
+  INF_VERSION                    = 1.27
+  BASE_NAME                      = QemuLoadImage
+  FILE_GUID                      = 93fd350f-98ab-423f-9ec4-0b0a9d777d69
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = QemuLoadImageLib|DXE_DRIVER
+
+[Sources]
+  QemuLoadImage.c
+
+[Packages]
+  SylicaOss/SylicaOss.dec
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  OvmfPkg/OvmfPkg.dec
+
+[LibraryClasses]
+  DebugLib
+  PrintLib
+  FileHandleLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+
+[Protocols]
+  gEfiDevicePathProtocolGuid
+  gEfiLoadedImageProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+
+[Guids]
+  gQemuLoaderMediaGuid
