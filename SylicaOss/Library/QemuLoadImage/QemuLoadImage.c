@@ -207,7 +207,14 @@ QemuLoadKernelImage (OUT EFI_HANDLE *ImageHandle)
       goto FreeCommandLine;
     }
 
-    KernelLoadedImage->LoadOptionsSize = (UINT32)((CommandLineSize - 1) * 2);
+    const UINTN FinalSize = CommandLineSize - 1;
+    if (FinalSize > SIZE_4KB) {
+      DEBUG ((DEBUG_ERROR, "%a: cmdline too long %d\n", __func__, FinalSize));
+      Status = EFI_UNSUPPORTED;
+      goto FreeCommandLine;
+    }
+
+    KernelLoadedImage->LoadOptionsSize = (UINT32)(FinalSize * sizeof (CHAR16));
   }
 
   UINTN InitrdSize = 0;

@@ -1,0 +1,42 @@
+rules:
+  - id: unchecked-integer-multiplication
+    languages:
+      - c
+    severity: WARNING
+    message: >-
+      Multiplication involving '$COUNT' occurs without a prior bounds check.
+      If '$COUNT' is controlled by external input or exceeds expected bounds,
+      this arithmetic operation can overflow, leading to wraparound bugs,
+      out-of-bounds indexing, or logic flaws.
+    patterns:
+      # Must occur inside a function body (filters out global/file-scope variables)
+      - pattern-inside: |
+          $RET $FUNC(...) {
+            ...
+          }
+
+      # Match multiplication with $COUNT on either side
+      - pattern-either:
+          - pattern: $COUNT * $FACTOR
+          - pattern: $FACTOR * $COUNT
+
+      # Prevent $COUNT from binding to trivial expressions
+      - metavariable-pattern:
+          metavariable: $COUNT
+          patterns:
+            - pattern-not: sizeof(...)
+            - pattern-not-regex: ^[0-9]+$
+
+      # Exclude cases where $COUNT is validated prior to calculation
+      - pattern-not-inside: |
+          if ($COUNT > $MAX) { ... }
+          ...
+      - pattern-not-inside: |
+          if ($COUNT >= $MAX) { ... }
+          ...
+      - pattern-not-inside: |
+          if ($MAX < $COUNT) { ... }
+          ...
+      - pattern-not-inside: |
+          if ($MAX <= $COUNT) { ... }
+          ...

@@ -24,4 +24,4 @@ jobs:
           persist-credentials: false
 
       - name: Run semgrep
-        run: semgrep scan --error --config auto --config .semgrep/
+        run: semgrep scan --error --config auto --config .semgrep/ --exclude .semgrep/

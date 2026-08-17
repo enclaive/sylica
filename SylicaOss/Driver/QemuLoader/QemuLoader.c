@@ -133,7 +133,7 @@ BlobTypeToFileInfo (IN LOADER_ITEM *Item,
     Attribute = EFI_FILE_READ_ONLY;
   }
 
-  const UINTN InfoNameSize = 2 * (StrLen (Name) + 1);
+  const UINTN InfoNameSize = StrSize (Name);
   const UINTN FileInfoSize = SIZE_OF_EFI_FILE_INFO + InfoNameSize;
 
   if (*BufferSize < FileInfoSize) {
@@ -482,6 +482,9 @@ typedef struct
   CHAR8 Name[QEMU_FW_CFG_FNAME_SIZE];
 } FWCFG_FILE;
 
+// https://github.com/qemu/qemu/blob/055952c0aa91ea7a00d135b73f78fc0b13442d6c/hw/nvram/fw_cfg.c#L46
+#define MAXIMUM_SLOTS  0x20
+
 STATIC
 EFI_STATUS
 LookupNamedBlobs ()
@@ -489,12 +492,17 @@ LookupNamedBlobs ()
   QemuFwCfgSelectItem (QemuFwCfgItemFileDir);
 
   const UINT32 Count = SwapBytes32 (QemuFwCfgRead32 ());
-  FWCFG_FILE *DirEntry = AllocatePool (sizeof (FWCFG_FILE) * Count);
+  if (Count > MAXIMUM_SLOTS) {
+    DEBUG ((DEBUG_ERROR, "%a: validate: too large %d\n", __func__, Count));
+    return EFI_UNSUPPORTED;
+  }
+  const UINT32 DirSize = Count * sizeof (FWCFG_FILE);
+  FWCFG_FILE *DirEntry = AllocatePool (DirSize);
   if (DirEntry == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
 
-  QemuFwCfgReadBytes (sizeof (FWCFG_FILE) * Count, DirEntry);
+  QemuFwCfgReadBytes (DirSize, DirEntry);
 
   for (UINT32 i = 0; i < Count; i++) {
     if (AsciiStrnCmp (DirEntry[i].Name, "etc/boot/", 9) != 0) {

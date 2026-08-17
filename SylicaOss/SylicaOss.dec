@@ -21,5 +21,8 @@
   ##  @libraryclass  Verify blobs read from the VMM
   BlobVerifierLib|Include/Library/BlobVerifierLib.h
 
+  ##  @libraryclass  Library to start a kernel loaded from QEMU
+  QemuLoadImageLib|Include/Library/QemuLoadImageLib.h
+
 [Guids]
   gQemuLoaderMediaGuid = {0x6861636b, 0x6564, 0x4265, {0x6e, 0x2d, 0x63, 0x6c, 0x61, 0x69, 0x76, 0x65}}

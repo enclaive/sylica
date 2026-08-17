@@ -128,7 +128,7 @@ MeasureCache (IN const CHAR8 *File, IN const UINT32 ItemSize, IN VOID *ItemData)
     CopyMem (&FwCfgEvent.File, File, QEMU_FW_CFG_FNAME_SIZE);
 
     const EFI_STATUS Status = TpmMeasureAndLogData (
-      1,EV_PLATFORM_CONFIG_FLAGS,
+      1, EV_PLATFORM_CONFIG_FLAGS,
       &FwCfgEvent, sizeof (FwCfgEvent),
       ItemData, ItemSize
     );
@@ -183,11 +183,15 @@ CacheItem (IN CACHE_ENTRY *Entry)
   if (Entry->Item == QemuFwCfgItemFileDir) {
     IoWrite16 (FW_CFG_IO_SELECTOR, Entry->Item);
     const UINT32 Count = SwapBytes32 (QemuFwCfgRead32 ());
+    if (Count > MAXIMUM_SLOTS) {
+      DEBUG ((DEBUG_ERROR, "%a: validate: too large %d\n", __func__, Count));
+      return FALSE;
+    }
     ItemSize = sizeof (Count) + Count * sizeof (FWCFG_FILE);
   }
 
   if (ItemSize > Entry->Max) {
-    DEBUG ((DEBUG_ERROR, "%a: CacheItem %d too large %d\n", __func__, Entry->Item, ItemSize));
+    DEBUG ((DEBUG_ERROR, "%a: validate %d: too large %d\n", __func__, Entry->Item, ItemSize));
     return FALSE;
   }
 
@@ -215,8 +219,13 @@ CacheItem (IN CACHE_ENTRY *Entry)
 
   if (Entry->Item == QemuFwCfgItemFileDir && ItemSize >= 4) {
     const UINT32 Count = SwapBytes32 (ReadUnaligned32 (ItemData));
-    if (ItemSize != sizeof (Count) + Count * sizeof (FWCFG_FILE)) {
-      DEBUG ((DEBUG_ERROR, "%a: CacheItem %x size mismatch %d != %d\n", __func__, Entry->Item, ItemSize, sizeof (Count) + Count * sizeof (FWCFG_FILE)));
+    if (Count > MAXIMUM_SLOTS) {
+      DEBUG ((DEBUG_ERROR, "%a: checking: too large %d\n", __func__, Count));
+      return FALSE;
+    }
+    const UINT32 ExpectedSize = sizeof (Count) + Count * sizeof (FWCFG_FILE);
+    if (ItemSize != ExpectedSize) {
+      DEBUG ((DEBUG_ERROR, "%a: checking: mismatch %d != %d\n", __func__, ItemSize, ExpectedSize));
       return FALSE;
     }
 
