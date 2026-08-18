@@ -58,7 +58,7 @@ runs:
         no-cache: true
         file: ${{ inputs.file }}
         target: ${{ inputs.target }}
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ inputs.registry }}/${{ inputs.image }}:latest
         labels: ${{ steps.meta.outputs.labels }}
         secrets: |
           GIT_AUTH_TOKEN=${{ github.token }}
