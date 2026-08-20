@@ -1,4 +1,8 @@
 {
+  "sylica-x86": {
+    "mode": "direct",
+    "test": ["shell", "boot"]
+  },
   "sylica-sev-oss": {
     "mode": "direct",
     "test": ["shell", "boot", "snp"]

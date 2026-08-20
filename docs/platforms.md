@@ -4,6 +4,7 @@
 |--------------|------------------------------------|-----------|------------------------------------------|
 | `sylica-sev` | `SylicaOss/SylicaOssSev.dsc`       | `CVMF.fd` | Sylica firmware for AMD SEV-SNP.         |
 | `sylica-tdx` | `SylicaOss/SylicaOssTdx.dsc`       | `CVMF.fd` | Sylica firmware for Intel TDX.           |
+| `sylica-x86` | `SylicaOss/SylicaOssSev.dsc`       | `CVMF.fd` | Sylica firmware for non-confidential x86.|
 | `debug-sev`  | `OvmfPkg/AmdSev/AmdSevX64.dsc`     | `OVMF.fd` | Unmodified upstream edk2 AmdSev build.   |
 | `debug-tdx`  | `OvmfPkg/IntelTdx/IntelTdxX64.dsc` | `OVMF.fd` | Unmodified upstream edk2 IntelTdx build. |
 
@@ -28,6 +29,12 @@ Forked from upstream `OvmfPkg/IntelTdx/IntelTdxX64.dsc` into `SylicaOss/SylicaOs
 - flash device renamed to `CVMF_TDX`
 
 TDX launch measurements (MRTD) are not computed yet; `measurements.json` carries the firmware hash only.
+
+## sylica-x86
+
+Same build recipe as `sylica-sev`, packaged as its own platform for non-confidential x86 virtual machines. The SEV code
+paths stay inactive when no SEV guest context is present, so the image boots on any KVM/QEMU host. No launch
+measurements apply; `measurements.json` carries the firmware hash only.
 
 ## debug-sev
 

@@ -1,0 +1,11 @@
+{
+  "package": "SylicaOss",
+  "platform": "SylicaOss/SylicaOssSev.dsc",
+  "target": "RELEASE",
+  "arch": "X64",
+  "toolchain": "GCC",
+  "arguments": "",
+  "output": "Build/SylicaSev/RELEASE_GCC/FV/CVMF_SEV.fd",
+  "filename": "CVMF.fd",
+  "measure": "none"
+}
