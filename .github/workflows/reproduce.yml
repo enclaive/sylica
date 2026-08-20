@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ debug-sev, debug-tdx, sylica-sev-oss, sylica-tdx-oss ]
+        platform: [ debug-sev, debug-tdx, sylica-sev-oss, sylica-x86, sylica-tdx-oss ]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
