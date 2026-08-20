@@ -42,7 +42,7 @@ git checkout <release-tag>
 git submodule update --init --depth 1
 git -C edk2 submodule update --init --depth 1
 docker build -f reproduce/Dockerfile --target artifact \
-    --build-arg PLATFORM=sylica-sev -o out .
+    --build-arg PLATFORM=<platform> -o out .
 sha256sum out/sylica-sev/CVMF.fd
 ```
 
