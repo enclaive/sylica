@@ -1,0 +1,15 @@
+name: Grype
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  grype:
+    uses: enclaive/security-workflows/.github/workflows/grype.yml@v1
