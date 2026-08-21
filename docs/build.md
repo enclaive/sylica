@@ -13,7 +13,7 @@ to ensure the build environment contains every dependency. Artifacts are exporte
 git submodule update --init --depth 1
 git -C edk2 submodule update --init --depth 1
 docker build -f reproduce/Dockerfile --target artifact \
-    --build-arg PLATFORM=sylica-sev -o out .
+    --build-arg PLATFORM=<platform> -o out .
 ```
 
 Results land in `out/<platform>/`: the firmware image, `sha256sums`/`b2sums`, and `tools-manifest.txt` (exact package versions of the toolchain).
@@ -23,7 +23,7 @@ Results land in `out/<platform>/`: the firmware image, `sha256sums`/`b2sums`, an
 `scripts/build.sh` initializes submodules and runs `reproduce/build.sh` directly on the host, without docker, so edk2 incremental builds work between runs:
 
 ```bash
-scripts/build.sh sylica-sev
+scripts/build.sh <platform>
 ```
 
 The host needs the toolchain packages listed in `reproduce/Dockerfile` (build-essential, git, nasm, acpica-tools,
@@ -65,7 +65,7 @@ A platform is a build recipe defined in `platforms/<name>.json`. See [platforms.
 1. Add DSC and FDF files under `SylicaOss/` (or reference upstream edk2 ones).
 2. Create `platforms/<name>.json`.
 3. Add the platform to the matrix in `.github/workflows/build.yml`.
-4. If the platform is not SEV-SNP, adjust the measurement step; `sev-snp-measure` covers SNP only.
+4. If the platform is neither SEV-SNP nor Intel TDX, adjust the measurement step.
 
 ## CI
 
