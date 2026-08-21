@@ -12,4 +12,4 @@ permissions:
 
 jobs:
   grype:
-    uses: enclaive/security-workflows/.github/workflows/grype.yml@v1
+    uses: enclaive/security-workflows/.github/workflows/grype.yml@9947876faac0881135b22291d5f88e700a51e209 # v1
