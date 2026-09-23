@@ -34,7 +34,7 @@ jobs:
 
       - name: Publish environment
         id: publish
-        uses: ./.github/actions/publish-env
+        uses: $/.github/actions/publish-env
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -58,7 +58,7 @@ jobs:
           persist-credentials: false
 
       - name: Reproduce build
-        uses: ./.github/actions/reproduce-build
+        uses: $/.github/actions/reproduce-build
         with:
           platform: ${{ matrix.platform }}
           build-env: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}

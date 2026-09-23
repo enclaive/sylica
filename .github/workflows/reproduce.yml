@@ -37,7 +37,7 @@ jobs:
 
       - name: Publish environment
         id: publish
-        uses: ./.github/actions/publish-env
+        uses: $/.github/actions/publish-env
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Reproduce Build with latest environment
         if: needs.publish-env.result == 'skipped'
-        uses: ./.github/actions/reproduce-build
+        uses: $/.github/actions/reproduce-build
         with:
           skip-compare: true
           platform: ${{ matrix.platform }}
@@ -74,7 +74,7 @@ jobs:
 
       - name: Reproduce Build with published environment
         if: needs.publish-env.result == 'success'
-        uses: ./.github/actions/reproduce-build
+        uses: $/.github/actions/reproduce-build
         with:
           platform: ${{ matrix.platform }}
           build-env: ghcr.io/${{ github.repository }}/build-env@${{ needs.publish-env.outputs.digest }}
@@ -101,7 +101,7 @@ jobs:
 
       - name: Publish test
         id: publish
-        uses: ./.github/actions/publish-env
+        uses: $/.github/actions/publish-env
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
